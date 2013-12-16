@@ -11,25 +11,28 @@
 extern volatile unsigned *gpio;
 
 int demo_time;
+int key; // remember last key pressed
 //
-// wait some time or 
-// if key is pressed
+// wait some time or until key is pressed
 // if time==1M wait only until key is pressed
 int demo_key()
-{ char key;
+{ int d;
+  d = demo_time;
   do {
     key=fgetc(stdin);
     if (key==' ')
+      return 0;
+    if (key!=-1)
       return 1;
     if (demo_time!=1000000)
-      demo_time--;
-  } while (demo_time>0);
+      d--;
+  } while (d>0);
   return 0;
 } // demo key
 
 
-void show_pattern_demo(int p)
-{ char key;
+int show_pattern_demo(int p)
+{ 
   // clear column
   GPIO_CLR0 = COL_MASK;
   // Set first column bit pattern, have to shift bits 0-4 to position 7-11
@@ -37,7 +40,7 @@ void show_pattern_demo(int p)
   // Active first row by pulling bit LOW
   GPIO_CLR0 = ROW0;
   if (demo_key()==1)
-    return;
+    return 1;
   // de-activate
   GPIO_SET0 = ROW0;
 
@@ -88,28 +91,33 @@ void show_pattern_demo(int p)
 
 void demo_mode()
 { 
-  int p,key;
-  demo_time = 1000000; // very slow
+  int p;
+  printf("\n\nRunning in Demo mode.\n");
+  printf("Showing diagonal pattern. Press <space> to step through\n");
+  printf("Then try increasingly run speed using 1,2,3,4,...8\n");
+  printf("'d' returns to stepping, 'q' to quit demo mode\n");
+  demo_time = 1000000; // manual
   p =0;
+  key=fgetc(stdin);
   do {
-    show_pattern(0x01F79C61);
+    show_pattern_demo(0x01F79C61);
+    show_pattern(0); // clean up after key press
     p++;
     if (p==5)
       p = 0;
-    key=fgetc(stdin);
-    switch (key)
+    switch (key) // use 'global' key
     {
-    case '0' : demo_time = 100; break;
-    case '1' : demo_time = 200; break;
-    case '2' : demo_time = 400; break;
-    case '3' : demo_time = 800; break;
-    case '4' : demo_time = 1000; break;
-    case '5' : demo_time = 3000; break;
-    case '6' : demo_time = 6000; break;
-    case '7' : demo_time = 10000; break;
-    case '8' : demo_time = 20000; break;
-    case '9' : demo_time = 1000000; break;
+    case '8' : demo_time = 1000; break;
+    case '7' : demo_time = 2000; break;
+    case '6' : demo_time = 4000; break;
+    case '5' : demo_time = 8000; break;
+    case '4' : demo_time = 10000; break;
+    case '3' : demo_time = 20000; break;
+    case '2' : demo_time = 30000; break;
+    case '1' : demo_time = 100000; break;
+    case 'd' : demo_time = 1000000; break;
     }
-  } while (key!='q');
+  } while (key!='q' && key!='Q');
+  printf("\nExiting demo mode\n\n");
 } // demo mode 
 
