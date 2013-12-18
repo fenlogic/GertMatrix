@@ -92,7 +92,7 @@ void setup_gpio()
    /* open /dev/mem */
    if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) {
       printf("Can't open /dev/mem\n");
-      printf("Did you forgot to use 'sudo .. ?'\n");
+      printf("Did you forget to use 'sudo .. ?'\n");
       exit (-1);
    }
 
